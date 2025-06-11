@@ -1,120 +1,118 @@
 
 import React, { useState, useEffect } from 'react';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import TokenInfo from '@/components/TokenInfo';
-import EligibilityCheck from '@/components/EligibilityCheck';
-import ClaimSection from '@/components/ClaimSection';
+import { Button } from '@/components/ui/button';
+import TokenInfo from './TokenInfo';
+import EligibilityCheck from './EligibilityCheck';
+import ClaimSection from './ClaimSection';
+import { toast } from '@/components/ui/sonner';
+
+declare global {
+  interface Window {
+    solana?: any;
+    phantom?: any;
+    solflare?: any;
+  }
+}
 
 const AirdropContainer = () => {
-  const { connection } = useConnection();
-  const { publicKey, connected } = useWallet();
+  const [wallet, setWallet] = useState<string | null>(null);
+  const [provider, setProvider] = useState<any>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
   const [isEligible, setIsEligible] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
-  const [hasClaimed, setHasClaimed] = useState(false);
+  const [eligibilityChecked, setEligibilityChecked] = useState(false);
 
   useEffect(() => {
-    if (publicKey) {
-      checkIfAlreadyClaimed();
-    }
-  }, [publicKey]);
+    // Try to auto-connect if previously connected
+    checkForWallet();
+  }, []);
 
-  const checkIfAlreadyClaimed = () => {
-    if (!publicKey) return;
-    
-    // In production, this would check against Supabase database
-    const claimed = JSON.parse(localStorage.getItem('claimedAddresses') || '[]');
-    setHasClaimed(claimed.includes(publicKey.toString()));
+  const checkForWallet = async () => {
+    try {
+      if (window.solana?.isPhantom && window.solana.isConnected) {
+        setProvider(window.solana);
+        setWallet(window.solana.publicKey?.toString());
+        toast.success('Auto-connected to Phantom wallet');
+      }
+    } catch (error) {
+      console.log('No auto-connect available');
+    }
   };
 
-  const checkEligibility = async () => {
-    if (!publicKey || !connection) {
-      toast.error('Please connect your wallet first');
-      return;
-    }
-
-    setIsChecking(true);
+  const connectWallet = async () => {
+    setIsConnecting(true);
     try {
-      // Check account info
-      const accountInfo = await connection.getAccountInfo(publicKey);
-      
-      if (!accountInfo) {
-        throw new Error('Account not found on Solana network');
+      if (!window.solana) {
+        throw new Error('Phantom wallet not found. Please install Phantom wallet extension.');
       }
 
-      // Check transaction history
-      const signatures = await connection.getSignaturesForAddress(publicKey, { limit: 100 });
+      const response = await window.solana.connect();
+      setProvider(window.solana);
+      setWallet(response.publicKey.toString());
+      toast.success('Wallet connected successfully!');
       
-      if (signatures.length === 0) {
-        throw new Error('No transaction history found. Account must be active.');
-      }
-
-      // Check if already claimed
-      if (hasClaimed) {
-        throw new Error('This wallet has already claimed the airdrop');
-      }
-
-      setIsEligible(true);
-      toast.success('You are eligible to claim the airdrop!');
-      
-    } catch (error) {
-      console.error('Eligibility check error:', error);
-      toast.error(`Eligibility check failed: ${error.message}`);
-      setIsEligible(false);
+      // Set up disconnect listener
+      window.solana.on('disconnect', () => {
+        setWallet(null);
+        setProvider(null);
+        setIsEligible(false);
+        setEligibilityChecked(false);
+        toast.info('Wallet disconnected');
+      });
+    } catch (error: any) {
+      toast.error(`Failed to connect wallet: ${error.message}`);
     } finally {
-      setIsChecking(false);
+      setIsConnecting(false);
     }
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <Card className="bg-gray-900/90 backdrop-blur-sm border-gray-700 text-white">
-        <CardHeader className="text-center pb-6">
-          <div className="text-6xl font-bold mb-2 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent pixel-font">
-            CHIMPZY
-          </div>
-          <CardTitle className="text-xl text-gray-300">
-            Airdrop Event - Claim Your Tokens!
-          </CardTitle>
+    <div className="w-full max-w-2xl mx-auto space-y-6">
+      <div className="text-center space-y-4">
+        <h1 className="text-6xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent pixel-font">
+          CHIMPZY
+        </h1>
+        <p className="text-xl text-gray-300">Airdrop Event - Claim Your Tokens!</p>
+      </div>
+
+      <TokenInfo />
+
+      <Card className="bg-gray-800/50 border-gray-600">
+        <CardHeader>
+          <CardTitle className="text-white text-lg">Wallet Connection</CardTitle>
         </CardHeader>
-        
-        <CardContent className="space-y-6">
-          <TokenInfo />
-          
-          <div className="text-center">
-            <WalletMultiButton className="!bg-gradient-to-r !from-cyan-500 !to-purple-600 hover:!from-cyan-600 hover:!to-purple-700" />
-          </div>
-
-          {connected && publicKey && (
-            <>
-              <div className="bg-gray-800/50 rounded-lg p-4">
-                <div className="text-sm text-gray-400 mb-2">Connected Wallet:</div>
-                <div className="font-mono text-sm break-all bg-gray-700 p-2 rounded">
-                  {publicKey.toString()}
-                </div>
+        <CardContent className="space-y-4">
+          {!wallet ? (
+            <Button 
+              onClick={connectWallet}
+              disabled={isConnecting}
+              className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700"
+            >
+              {isConnecting ? 'Connecting...' : 'Connect Phantom Wallet'}
+            </Button>
+          ) : (
+            <div className="space-y-2">
+              <div className="text-sm text-gray-400">Connected Wallet:</div>
+              <div className="font-mono text-xs bg-gray-700 p-2 rounded break-all text-white">
+                {wallet}
               </div>
-
-              <EligibilityCheck 
-                onCheck={checkEligibility}
-                isChecking={isChecking}
-                isEligible={isEligible}
-                hasClaimed={hasClaimed}
-              />
-
-              {isEligible && !hasClaimed && (
-                <ClaimSection 
-                  publicKey={publicKey}
-                  onClaimed={() => setHasClaimed(true)}
-                />
-              )}
-            </>
+              <div className="text-green-400 text-sm">✅ Wallet Connected</div>
+            </div>
           )}
         </CardContent>
       </Card>
+
+      {wallet && (
+        <EligibilityCheck 
+          wallet={wallet}
+          onEligibilityCheck={setEligibilityChecked}
+          onEligibilityResult={setIsEligible}
+        />
+      )}
+
+      {wallet && eligibilityChecked && isEligible && (
+        <ClaimSection wallet={wallet} provider={provider} />
+      )}
     </div>
   );
 };
