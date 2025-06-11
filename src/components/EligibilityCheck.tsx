@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EligibilityCheckProps {
   wallet: string;
@@ -21,12 +22,17 @@ const EligibilityCheck: React.FC<EligibilityCheckProps> = ({
   const checkEligibility = async () => {
     setIsChecking(true);
     try {
-      // Simulate eligibility check
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Simulate eligibility check delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Check if already claimed (simple localStorage check)
-      const claimedWallets = JSON.parse(localStorage.getItem('claimedWallets') || '[]');
-      if (claimedWallets.includes(wallet)) {
+      // Check if wallet has already claimed
+      const { data: existingClaim } = await supabase
+        .from('airdrop_claims')
+        .select('*')
+        .eq('wallet_address', wallet)
+        .single();
+
+      if (existingClaim) {
         setEligibilityStatus('Already claimed');
         onEligibilityResult(false);
         toast.error('This wallet has already claimed the airdrop');
@@ -37,11 +43,19 @@ const EligibilityCheck: React.FC<EligibilityCheckProps> = ({
       setEligibilityStatus('Eligible');
       onEligibilityResult(true);
       onEligibilityCheck(true);
-      toast.success('You are eligible for the airdrop!');
+      toast.success('🎉 You are eligible for the airdrop!');
     } catch (error: any) {
-      setEligibilityStatus('Error checking eligibility');
-      onEligibilityResult(false);
-      toast.error(`Eligibility check failed: ${error.message}`);
+      // If no claim found, wallet is eligible
+      if (error.code === 'PGRST116') {
+        setEligibilityStatus('Eligible');
+        onEligibilityResult(true);
+        onEligibilityCheck(true);
+        toast.success('🎉 You are eligible for the airdrop!');
+      } else {
+        setEligibilityStatus('Error checking eligibility');
+        onEligibilityResult(false);
+        toast.error(`Eligibility check failed: ${error.message}`);
+      }
     } finally {
       setIsChecking(false);
     }

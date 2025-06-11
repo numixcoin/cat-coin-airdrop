@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ClaimSectionProps {
   wallet: string;
@@ -12,36 +13,133 @@ interface ClaimSectionProps {
 const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [claimStatus, setClaimStatus] = useState<string | null>(null);
-  const [transactionHash, setTransactionHash] = useState<string | null>(null);
+  const [claimData, setClaimData] = useState<any>(null);
+
+  const CLAIM_AMOUNT = '50,000';
+  const CLAIM_FEE = 0.01;
+  const FEE_RECIPIENT = 'Ec8pFBaToYb1THRQg9V9juFmYiX93upnT2WA63t7qkt1';
+  const TREASURY = 'vnxiyVZ7dAaRN12gA8EjkQ1NDZ1mD4yQv5SgPv5A9gh';
+
+  // Check if wallet has already claimed
+  useEffect(() => {
+    checkExistingClaim();
+  }, [wallet]);
+
+  const checkExistingClaim = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('airdrop_claims')
+        .select('*')
+        .eq('wallet_address', wallet)
+        .single();
+
+      if (data) {
+        setClaimData(data);
+        setClaimStatus(data.status);
+      }
+    } catch (error) {
+      // No existing claim found
+    }
+  };
 
   const claimAirdrop = async () => {
     setIsClaiming(true);
     try {
-      // Simulate claim process
-      toast.info('Processing airdrop claim...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Generate mock transaction hash
-      const mockTxHash = `mock_tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Mark as claimed
-      const claimedWallets = JSON.parse(localStorage.getItem('claimedWallets') || '[]');
-      claimedWallets.push(wallet);
-      localStorage.setItem('claimedWallets', JSON.stringify(claimedWallets));
-      
-      setTransactionHash(mockTxHash);
-      setClaimStatus('Success');
-      toast.success('Airdrop claimed successfully!');
+      toast.info('Processing fee payment...');
+
+      // Simulate fee transaction (in production, this would be actual Solana transaction)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const mockFeeHash = `fee_tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      toast.info('Fee paid! Processing airdrop claim...');
+
+      // Call backend service to process the claim
+      const response = await fetch('/api/process-airdrop', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress: wallet,
+          feeTransactionHash: mockFeeHash,
+          feePaid: CLAIM_FEE
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to process claim');
+      }
+
+      setClaimData(result.claim);
+      setClaimStatus(result.claim.status);
+      toast.success('Claim submitted! Tokens will be sent shortly.');
+
+      // Poll for status updates
+      pollClaimStatus(result.claim.id);
+
     } catch (error: any) {
-      setClaimStatus('Failed');
+      setClaimStatus('failed');
       toast.error(`Claim failed: ${error.message}`);
     } finally {
       setIsClaiming(false);
     }
   };
 
-  const CLAIM_AMOUNT = '50,000';
-  const CLAIM_FEE = '0.01';
+  const pollClaimStatus = async (claimId: string) => {
+    const maxAttempts = 20;
+    let attempts = 0;
+
+    const poll = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('airdrop_claims')
+          .select('*')
+          .eq('id', claimId)
+          .single();
+
+        if (data) {
+          setClaimData(data);
+          setClaimStatus(data.status);
+
+          if (data.status === 'completed') {
+            toast.success('🎉 Tokens have been sent to your wallet!');
+            return;
+          } else if (data.status === 'failed') {
+            toast.error('Token transfer failed. Please contact support.');
+            return;
+          }
+        }
+
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(poll, 3000); // Poll every 3 seconds
+        }
+      } catch (error) {
+        console.error('Error polling claim status:', error);
+      }
+    };
+
+    poll();
+  };
+
+  const getStatusDisplay = () => {
+    switch (claimStatus) {
+      case 'pending':
+        return { text: '⏳ Claim Pending', color: 'bg-yellow-900/50 text-yellow-400 border-yellow-600' };
+      case 'processing':
+        return { text: '⚡ Processing Tokens...', color: 'bg-blue-900/50 text-blue-400 border-blue-600' };
+      case 'completed':
+        return { text: '🎉 Claim Completed!', color: 'bg-green-900/50 text-green-400 border-green-600' };
+      case 'failed':
+        return { text: '❌ Claim Failed', color: 'bg-red-900/50 text-red-400 border-red-600' };
+      default:
+        return null;
+    }
+  };
+
+  const statusDisplay = getStatusDisplay();
 
   return (
     <Card className="bg-gray-800/50 border-gray-600">
@@ -55,24 +153,25 @@ const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
           </div>
           <div className="text-sm text-gray-400">
             <strong>Claim Fee:</strong> {CLAIM_FEE} SOL<br />
-            <small>Fee recipient: Ec8pFBaToYb1THRQg9V9juFmYiX93upnT2WA63t7qkt1</small><br />
-            <small><strong>Treasury:</strong> vnxiyVZ7dAaRN12gA8EjkQ1NDZ1mD4yQv5SgPv5A9gh</small>
+            <small>Fee recipient: {FEE_RECIPIENT}</small><br />
+            <small><strong>Treasury:</strong> {TREASURY}</small>
           </div>
         </div>
 
-        {claimStatus && (
-          <div className={`p-3 rounded-lg text-sm ${
-            claimStatus === 'Success' 
-              ? 'bg-green-900/50 text-green-400 border border-green-600' 
-              : 'bg-red-900/50 text-red-400 border border-red-600'
-          }`}>
-            {claimStatus === 'Success' ? '🎉 Claim Successful!' : '❌ Claim Failed'}
-            {transactionHash && (
+        {statusDisplay && (
+          <div className={`p-3 rounded-lg text-sm border ${statusDisplay.color}`}>
+            {statusDisplay.text}
+            {claimData?.token_transaction_hash && (
               <div className="mt-2">
-                <div className="text-xs text-gray-400">Transaction Hash:</div>
+                <div className="text-xs text-gray-400">Token Transaction Hash:</div>
                 <div className="font-mono text-xs bg-gray-700 p-2 rounded break-all">
-                  {transactionHash}
+                  {claimData.token_transaction_hash}
                 </div>
+              </div>
+            )}
+            {claimData?.error_message && (
+              <div className="mt-2 text-xs text-red-300">
+                Error: {claimData.error_message}
               </div>
             )}
           </div>
@@ -80,18 +179,30 @@ const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
 
         <Button 
           onClick={claimAirdrop}
-          disabled={isClaiming || claimStatus === 'Success'}
+          disabled={isClaiming || claimStatus === 'completed' || claimStatus === 'processing'}
           className="w-full bg-gradient-to-r from-green-500 to-cyan-600 hover:from-green-600 hover:to-cyan-700"
         >
-          {isClaiming ? 'Claiming...' : claimStatus === 'Success' ? '✅ Already Claimed' : 'Claim Airdrop'}
+          {isClaiming ? 'Processing...' : 
+           claimStatus === 'completed' ? '✅ Tokens Sent' :
+           claimStatus === 'processing' ? '⚡ Processing...' :
+           'Claim Airdrop'}
         </Button>
 
-        {claimStatus === 'Success' && (
+        {claimStatus === 'completed' && (
           <div className="bg-blue-900/50 border border-blue-600 p-3 rounded-lg text-sm text-blue-400">
-            <strong>📋 Next Steps:</strong><br />
-            • Your claim has been recorded<br />
-            • Token distribution will be processed within 24 hours<br />
-            • Tokens will appear in your wallet automatically
+            <strong>✅ Success!</strong><br />
+            • Your tokens have been sent to your wallet<br />
+            • Transaction completed at: {new Date(claimData?.completed_at).toLocaleString()}<br />
+            • Check your wallet for the CHIMPZY tokens
+          </div>
+        )}
+
+        {claimStatus === 'processing' && (
+          <div className="bg-blue-900/50 border border-blue-600 p-3 rounded-lg text-sm text-blue-400">
+            <strong>⚡ Processing...</strong><br />
+            • Fee payment confirmed<br />
+            • Treasury is sending your tokens<br />
+            • This usually takes 30-60 seconds
           </div>
         )}
       </CardContent>

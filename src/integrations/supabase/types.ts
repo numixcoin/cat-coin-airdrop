@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      airdrop_claims: {
+        Row: {
+          claim_amount: number
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          fee_paid: number
+          fee_transaction_hash: string
+          id: string
+          status: string
+          token_transaction_hash: string | null
+          wallet_address: string
+        }
+        Insert: {
+          claim_amount?: number
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          fee_paid: number
+          fee_transaction_hash: string
+          id?: string
+          status?: string
+          token_transaction_hash?: string | null
+          wallet_address: string
+        }
+        Update: {
+          claim_amount?: number
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          fee_paid?: number
+          fee_transaction_hash?: string
+          id?: string
+          status?: string
+          token_transaction_hash?: string | null
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       deposits: {
         Row: {
           amount: number
