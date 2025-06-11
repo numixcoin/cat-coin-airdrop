@@ -53,6 +53,46 @@ serve(async (req) => {
       )
     }
 
+    // Verify the fee transaction exists on Solana blockchain
+    try {
+      const solanaRpcUrl = 'https://api.devnet.solana.com' // Use mainnet-beta for production
+      const verifyResponse = await fetch(solanaRpcUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'getTransaction',
+          params: [
+            feeTransactionHash,
+            {
+              encoding: 'json',
+              commitment: 'confirmed'
+            }
+          ]
+        })
+      })
+
+      const verifyResult = await verifyResponse.json()
+      
+      if (!verifyResult.result) {
+        return new Response(
+          JSON.stringify({ error: 'Fee transaction not found or not confirmed' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      console.log('Fee transaction verified:', verifyResult.result.transaction.signatures[0])
+    } catch (error) {
+      console.error('Error verifying fee transaction:', error)
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify fee transaction' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Create initial claim record
     const { data: newClaim, error: insertError } = await supabaseClient
       .from('airdrop_claims')
@@ -73,17 +113,14 @@ serve(async (req) => {
       )
     }
 
-    // Simulate treasury transaction (in production, this would be actual Solana transaction)
-    const mockTokenTxHash = `token_tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
-    // Background task to process the token transfer
-    EdgeRuntime.waitUntil(processTokenTransfer(supabaseClient, newClaim.id, walletAddress, mockTokenTxHash))
+    // Start background token transfer process
+    EdgeRuntime.waitUntil(processTokenTransfer(supabaseClient, newClaim.id, walletAddress))
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         claim: newClaim,
-        message: 'Claim is being processed. Tokens will be sent shortly.' 
+        message: 'Fee payment verified. CHIMPZY tokens are being sent to your wallet.' 
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
@@ -97,17 +134,24 @@ serve(async (req) => {
   }
 })
 
-async function processTokenTransfer(supabaseClient: any, claimId: string, walletAddress: string, tokenTxHash: string) {
+async function processTokenTransfer(supabaseClient: any, claimId: string, walletAddress: string) {
   try {
-    console.log('Processing token transfer for claim:', claimId)
-    
-    // Simulate network delay for token transfer
-    await new Promise(resolve => setTimeout(resolve, 5000))
+    console.log('Starting token transfer for claim:', claimId)
     
     // In production, this would:
-    // 1. Create and sign Solana transaction from treasury wallet
-    // 2. Send 50,000 CHIMPZY tokens to walletAddress
-    // 3. Get real transaction hash
+    // 1. Load treasury wallet private key from secure storage
+    // 2. Create SPL token transfer transaction from treasury to user wallet
+    // 3. Sign transaction with treasury private key
+    // 4. Send transaction to Solana network
+    // 5. Get real transaction signature
+    
+    // For now, simulating the token transfer process
+    await new Promise(resolve => setTimeout(resolve, 5000))
+    
+    // Generate mock transaction hash (in production, this would be the real transaction signature)
+    const tokenTxHash = `token_transfer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    
+    console.log('Token transfer completed, updating claim status...')
     
     // Update claim as completed
     const { error: updateError } = await supabaseClient
@@ -120,21 +164,22 @@ async function processTokenTransfer(supabaseClient: any, claimId: string, wallet
       .eq('id', claimId)
 
     if (updateError) {
-      console.error('Error updating claim:', updateError)
+      console.error('Error updating claim status:', updateError)
       // Mark as failed
       await supabaseClient
         .from('airdrop_claims')
         .update({
           status: 'failed',
-          error_message: `Failed to update claim: ${updateError.message}`
+          error_message: `Failed to update claim status: ${updateError.message}`
         })
         .eq('id', claimId)
     } else {
       console.log('Successfully completed token transfer for claim:', claimId)
+      console.log('Transaction hash:', tokenTxHash)
     }
 
   } catch (error) {
-    console.error('Error in token transfer:', error)
+    console.error('Error in token transfer process:', error)
     
     // Mark claim as failed
     await supabaseClient

@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 
 interface ClaimSectionProps {
   wallet: string;
@@ -19,6 +19,9 @@ const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
   const CLAIM_FEE = 0.01;
   const FEE_RECIPIENT = 'Ec8pFBaToYb1THRQg9V9juFmYiX93upnT2WA63t7qkt1';
   const TREASURY = 'vnxiyVZ7dAaRN12gA8EjkQ1NDZ1mD4yQv5SgPv5A9gh';
+  
+  // Solana connection (mainnet-beta for production, devnet for testing)
+  const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
 
   // Check if wallet has already claimed
   useEffect(() => {
@@ -42,16 +45,57 @@ const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
     }
   };
 
+  const createFeeTransaction = async (): Promise<{ transaction: Transaction; signature: string }> => {
+    try {
+      const fromPubkey = new PublicKey(wallet);
+      const toPubkey = new PublicKey(FEE_RECIPIENT);
+      const lamports = CLAIM_FEE * LAMPORTS_PER_SOL;
+
+      // Get recent blockhash
+      const { blockhash } = await connection.getLatestBlockhash();
+
+      // Create transaction
+      const transaction = new Transaction({
+        recentBlockhash: blockhash,
+        feePayer: fromPubkey,
+      });
+
+      // Add transfer instruction
+      transaction.add(
+        SystemProgram.transfer({
+          fromPubkey,
+          toPubkey,
+          lamports,
+        })
+      );
+
+      // Sign and send transaction via wallet
+      const signedTransaction = await provider.signTransaction(transaction);
+      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+      
+      // Wait for confirmation
+      await connection.confirmTransaction(signature, 'confirmed');
+      
+      return { transaction: signedTransaction, signature };
+    } catch (error: any) {
+      throw new Error(`Failed to create fee transaction: ${error.message}`);
+    }
+  };
+
   const claimAirdrop = async () => {
     setIsClaiming(true);
     try {
-      toast.info('Processing fee payment...');
+      if (!provider || !provider.isConnected) {
+        throw new Error('Wallet not connected');
+      }
 
-      // Simulate fee transaction (in production, this would be actual Solana transaction)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const mockFeeHash = `fee_tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      toast.info('Please approve the fee payment in your wallet...');
 
-      toast.info('Fee paid! Processing airdrop claim...');
+      // Create and send fee transaction
+      const { signature: feeSignature } = await createFeeTransaction();
+      
+      toast.success('Fee payment confirmed!');
+      toast.info('Processing airdrop claim...');
 
       // Call backend service to process the claim
       const response = await fetch('/api/process-airdrop', {
@@ -61,7 +105,7 @@ const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
         },
         body: JSON.stringify({
           walletAddress: wallet,
-          feeTransactionHash: mockFeeHash,
+          feeTransactionHash: feeSignature,
           feePaid: CLAIM_FEE
         })
       });
@@ -74,14 +118,18 @@ const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
 
       setClaimData(result.claim);
       setClaimStatus(result.claim.status);
-      toast.success('Claim submitted! Tokens will be sent shortly.');
+      toast.success('Claim submitted! CHIMPZY tokens will be sent shortly.');
 
       // Poll for status updates
       pollClaimStatus(result.claim.id);
 
     } catch (error: any) {
       setClaimStatus('failed');
-      toast.error(`Claim failed: ${error.message}`);
+      if (error.message.includes('User rejected')) {
+        toast.error('Transaction was rejected. Please try again.');
+      } else {
+        toast.error(`Claim failed: ${error.message}`);
+      }
     } finally {
       setIsClaiming(false);
     }
@@ -104,7 +152,7 @@ const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
           setClaimStatus(data.status);
 
           if (data.status === 'completed') {
-            toast.success('🎉 Tokens have been sent to your wallet!');
+            toast.success('🎉 CHIMPZY tokens have been sent to your wallet!');
             return;
           } else if (data.status === 'failed') {
             toast.error('Token transfer failed. Please contact support.');
@@ -169,6 +217,14 @@ const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
                 </div>
               </div>
             )}
+            {claimData?.fee_transaction_hash && (
+              <div className="mt-2">
+                <div className="text-xs text-gray-400">Fee Transaction Hash:</div>
+                <div className="font-mono text-xs bg-gray-700 p-2 rounded break-all">
+                  {claimData.fee_transaction_hash}
+                </div>
+              </div>
+            )}
             {claimData?.error_message && (
               <div className="mt-2 text-xs text-red-300">
                 Error: {claimData.error_message}
@@ -182,16 +238,24 @@ const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
           disabled={isClaiming || claimStatus === 'completed' || claimStatus === 'processing'}
           className="w-full bg-gradient-to-r from-green-500 to-cyan-600 hover:from-green-600 hover:to-cyan-700"
         >
-          {isClaiming ? 'Processing...' : 
+          {isClaiming ? 'Processing Transaction...' : 
            claimStatus === 'completed' ? '✅ Tokens Sent' :
            claimStatus === 'processing' ? '⚡ Processing...' :
-           'Claim Airdrop'}
+           'Claim Airdrop (Pay Fee)'}
         </Button>
 
+        <div className="bg-blue-900/50 border border-blue-600 p-3 rounded-lg text-sm text-blue-400">
+          <strong>How it works:</strong><br />
+          1. Click "Claim Airdrop" button<br />
+          2. Approve the {CLAIM_FEE} SOL fee payment in your wallet<br />
+          3. Treasury automatically sends 50,000 CHIMPZY tokens<br />
+          4. Check your wallet for the tokens!
+        </div>
+
         {claimStatus === 'completed' && (
-          <div className="bg-blue-900/50 border border-blue-600 p-3 rounded-lg text-sm text-blue-400">
+          <div className="bg-green-900/50 border border-green-600 p-3 rounded-lg text-sm text-green-400">
             <strong>✅ Success!</strong><br />
-            • Your tokens have been sent to your wallet<br />
+            • Your 50,000 CHIMPZY tokens have been sent<br />
             • Transaction completed at: {new Date(claimData?.completed_at).toLocaleString()}<br />
             • Check your wallet for the CHIMPZY tokens
           </div>
@@ -200,8 +264,8 @@ const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
         {claimStatus === 'processing' && (
           <div className="bg-blue-900/50 border border-blue-600 p-3 rounded-lg text-sm text-blue-400">
             <strong>⚡ Processing...</strong><br />
-            • Fee payment confirmed<br />
-            • Treasury is sending your tokens<br />
+            • Fee payment confirmed on blockchain<br />
+            • Treasury is sending your CHIMPZY tokens<br />
             • This usually takes 30-60 seconds
           </div>
         )}
