@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# Private Keys & Generated Addresses (SECURITY)
+cat-address-*.json
+*-address-*.json
+*.key
+*.pem
+id.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

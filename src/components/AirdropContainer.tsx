@@ -1,7 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Zap } from 'lucide-react';
 import EligibilityCheck from './EligibilityCheck';
 import ClaimSection from './ClaimSection';
 import SocialTasks from './SocialTasks';
@@ -82,6 +84,27 @@ const AirdropContainer = () => {
           airdrop={airdrop}
         />
       )}
+
+      {/* Address Generator Link */}
+      <Card className="bg-black/40 border-green-500/30 backdrop-blur-sm">
+        <CardContent className="p-6">
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center gap-2 text-green-400 mb-2">
+              <Zap className="w-5 h-5" />
+              <h3 className="text-lg font-semibold">Custom Address Generator</h3>
+            </div>
+            <p className="text-sm text-green-300/70 mb-4">
+              Generate custom Solana wallet addresses with your desired prefix/suffix or completely random addresses
+            </p>
+            <Link to="/generator">
+              <Button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2">
+                <Zap className="w-4 h-4 mr-2" />
+                Generate Custom Address
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

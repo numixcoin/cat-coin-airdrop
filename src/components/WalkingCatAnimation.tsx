@@ -5,7 +5,7 @@ const WalkingCatAnimation: React.FC = () => {
   const [position, setPosition] = useState(0);
   const [glitchActive, setGlitchActive] = useState(false);
 
-  // ASCII art frames untuk kucing berjalan
+  // ASCII art frames for walking cat
   const catFrames = [
     // Frame 1 - Standing
     `    /\\_/\\  
@@ -38,32 +38,30 @@ const WalkingCatAnimation: React.FC = () => {
     > ~ <  `
   ];
 
-  // Glitch characters untuk efek ASCII
+  // Glitch characters for ASCII effect
   const glitchChars = ['█', '▓', '▒', '░', '▄', '▀', '▌', '▐', '■', '□', '▪', '▫', '◆', '◇', '◈', '◉'];
 
-  // Animasi berjalan
   useEffect(() => {
+    // Cat walking animation
     const walkInterval = setInterval(() => {
       setCurrentFrame((prev) => (prev + 1) % catFrames.length);
-      setPosition((prev) => (prev + 2) % 100); // Bergerak dari kiri ke kanan
-    }, 300); // Ganti frame setiap 300ms
+    }, 500);
 
-    return () => clearInterval(walkInterval);
-  }, [catFrames.length]);
-
-  // Efek glitch random
-  useEffect(() => {
+    // Random glitch effect
     const glitchInterval = setInterval(() => {
-      if (Math.random() < 0.15) { // 15% chance untuk glitch
+      if (Math.random() < 0.15) { // 15% chance for glitch
         setGlitchActive(true);
         setTimeout(() => setGlitchActive(false), 150);
       }
-    }, 800);
+    }, 1000);
 
-    return () => clearInterval(glitchInterval);
+    return () => {
+      clearInterval(walkInterval);
+      clearInterval(glitchInterval);
+    };
   }, []);
 
-  // Fungsi untuk menerapkan efek glitch pada teks
+  // Function to apply glitch effect to text
   const applyGlitch = (text: string): string => {
     if (!glitchActive) return text;
     
