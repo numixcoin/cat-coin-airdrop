@@ -47,6 +47,11 @@ const WalkingCatAnimation: React.FC = () => {
       setCurrentFrame((prev) => (prev + 1) % catFrames.length);
     }, 500);
 
+    // Cat position movement
+    const moveInterval = setInterval(() => {
+      setPosition((prev) => (prev + 2) % 100); // Move 2% every 200ms, reset at 100%
+    }, 200);
+
     // Random glitch effect
     const glitchInterval = setInterval(() => {
       if (Math.random() < 0.15) { // 15% chance for glitch
@@ -57,6 +62,7 @@ const WalkingCatAnimation: React.FC = () => {
 
     return () => {
       clearInterval(walkInterval);
+      clearInterval(moveInterval);
       clearInterval(glitchInterval);
     };
   }, []);
