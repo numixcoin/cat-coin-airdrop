@@ -57,6 +57,12 @@ const PresaleSection: React.FC<PresaleSectionProps> = ({ wallet, provider, presa
           {'>'} PRESALE SECTION
         </CardTitle>
       </CardHeader>
+      
+      {/* Countdown Timer */}
+      <div className="p-4 border-b border-white">
+        <CountdownTimer />
+      </div>
+      
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="text-white text-sm">{'>'} PRESALE RATE:</div>
@@ -136,11 +142,6 @@ const PresaleSection: React.FC<PresaleSectionProps> = ({ wallet, provider, presa
           </div>
         )}
       </CardContent>
-
-      {/* Countdown Timer */}
-      <div className="p-4 border-t border-white">
-        <CountdownTimer />
-      </div>
 
     {/* Payment Popup */}
     <PaymentPopup
