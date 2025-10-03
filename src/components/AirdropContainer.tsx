@@ -6,6 +6,7 @@ import EligibilityCheck from './EligibilityCheck';
 import ClaimSection from './ClaimSection';
 import SocialTasks from './SocialTasks';
 import PresaleSection from './PresaleSection';
+import WalkingCatAnimation from './WalkingCatAnimation';
 import { toast } from '@/components/ui/sonner';
 import { useWallet } from '../hooks/useWallet';
 import { useAirdrop } from '../hooks/useAirdrop';
@@ -43,6 +44,10 @@ const AirdropContainer = () => {
           <h1 className="text-4xl md:text-6xl font-bold glitch-text animate-pulse text-white matrix-font text-center leading-tight">
             CAT COIN
           </h1>
+          
+          {/* Walking Cat Animation */}
+          <WalkingCatAnimation />
+          
           <p className="text-lg md:text-xl text-white typewriter text-center">
             {'>'} cats are better then dogs
           </p>
