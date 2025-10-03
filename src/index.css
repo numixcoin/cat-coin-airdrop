@@ -37,10 +37,11 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   body {
-    @apply bg-black text-white;
+    background-color: #000000;
+    color: #ffffff;
     font-family: 'Courier Prime', monospace;
   }
 }

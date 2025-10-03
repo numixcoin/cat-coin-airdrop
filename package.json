@@ -10,6 +10,16 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "overrides": {
+    "qrcode.react": {
+      "react": "$react",
+      "react-dom": "$react-dom"
+    },
+    "react-qr-reader": {
+      "react": "$react",
+      "react-dom": "$react-dom"
+    }
+  },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
     "@hookform/resolvers": "^3.9.0",

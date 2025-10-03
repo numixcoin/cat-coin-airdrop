@@ -52,22 +52,19 @@ const EligibilityCheck: React.FC<EligibilityCheckProps> = ({
     <Card className="w-full bg-black border-2 border-white text-white matrix-font">
       <CardHeader>
         <CardTitle className="text-xl font-bold glitch-text text-center">
-          {'>'} ELIGIBILITY CHECK
+          {'>'} SUBMIT ADDRESS
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-center space-y-2">
           <div className="text-white text-sm">
-            {'>'} CHECKING WALLET ELIGIBILITY...
-          </div>
-          <div className="text-white text-xs">
-            Minimum 0.1 SOL balance required
+            {'>'} SUBMIT YOUR WALLET ADDRESS AFTER COMPLETING TASKS
           </div>
         </div>
         {!isEligible && !hasChecked && (
           <div className="text-center space-y-4">
             <div className="text-white matrix-font">
-              {'>'} Enter your wallet address to check CAT COIN airdrop eligibility 🐱
+              {'>'} Submit your wallet address after completing all social tasks 🐱
             </div>
             <Input
               type="text"
@@ -81,20 +78,8 @@ const EligibilityCheck: React.FC<EligibilityCheckProps> = ({
               disabled={isChecking || !walletAddress.trim()}
               className="matrix-button"
             >
-              {isChecking ? '{\'>\'}  SCANNING MATRIX...' : '{\'>\'}  CHECK ELIGIBILITY'}
+              {isChecking ? '{\'>\'}  SUBMITTING...' : '{\'>\'}  SUBMIT ADDRESS'}
             </Button>
-          </div>
-        )}
-
-        {hasChecked && !isEligible && (
-          <div className="bg-black/50 border-2 border-red-400 p-4 rounded-lg text-center">
-            <div className="text-red-400 text-lg font-bold matrix-font">
-              ❌ NOT ELIGIBLE
-            </div>
-            <div className="text-red-300 text-sm mt-2 matrix-font">
-              {'>'} Your wallet is not eligible for the CAT COIN airdrop<br />
-              {'>'} Only specific addresses qualify for this distribution 🐱
-            </div>
           </div>
         )}
 

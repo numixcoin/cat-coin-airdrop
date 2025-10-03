@@ -28,7 +28,7 @@ const Index = () => {
         </div>
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-6xl font-bold glitch-text animate-pulse text-white matrix-font mb-4">
-            CAT COIN AIRDROP
+            CAT COIN
           </h1>
           <p className="text-lg md:text-xl text-white typewriter">
             {'>'} cats are better then dogs

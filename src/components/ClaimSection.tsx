@@ -111,49 +111,52 @@ const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider, airdrop }
             20,000 CAT COIN tokens available
           </div>
         </div>
-        <div className="text-3xl font-bold text-green-400 glitch-text">
-          {CLAIM_AMOUNT} CAT COIN 🐱
+        
+        <div className="text-center">
+          <div className="text-3xl font-bold text-green-400 glitch-text">
+            {CLAIM_AMOUNT} CAT COIN 🐱
+          </div>
+          <div className="text-sm text-green-300 matrix-font">
+            {'>'} Free for eligible users
+          </div>
         </div>
-        <div className="text-sm text-green-300 matrix-font">
-          {'>'} Free for eligible users
+
+        {statusDisplay && (
+          <div className={`p-3 rounded-lg text-sm border-2 border-green-400 bg-black/50 ${statusDisplay.color}`}>
+            {statusDisplay.text}
+          </div>
+        )}
+
+        <div className="flex items-center space-x-3">
+          <Button 
+            onClick={handleClaimAirdrop}
+            disabled={true}
+            className="flex-1 matrix-button opacity-50 cursor-not-allowed"
+          >
+            {'{\'>\'}  CLAIM AIRDROP'}
+          </Button>
+          <div className="text-xs text-green-400 matrix-font bg-black/50 border border-green-400 px-2 py-1 rounded">
+            COMING SOON
+          </div>
         </div>
-      </div>
 
-      {statusDisplay && (
-        <div className={`p-3 rounded-lg text-sm border-2 border-green-400 bg-black/50 ${statusDisplay.color}`}>
-          {statusDisplay.text}
-        </div>
-      )}
-
-      <div className="flex items-center space-x-3">
-        <Button 
-          onClick={handleClaimAirdrop}
-          disabled={true}
-          className="flex-1 matrix-button opacity-50 cursor-not-allowed"
-        >
-          {'{\'>\'}  CLAIM AIRDROP'}
-        </Button>
-        <div className="text-xs text-green-400 matrix-font bg-black/50 border border-green-400 px-2 py-1 rounded">
-          COMING SOON
-        </div>
-      </div>
-
-      <div className="bg-black/50 border-2 border-green-400 p-3 rounded-lg text-sm text-green-400 matrix-font">
-        <strong>{'>'} AIRDROP INFO:</strong><br />
-        {'>'} 1. Click "CLAIM AIRDROP" to start<br />
-        {'>'} 2. Smart contract will verify eligibility<br />
-        {'>'} 3. {CLAIM_AMOUNT} CAT COIN will be sent to your wallet<br />
-        {'>'} 4. Free with no additional fees! 🐱
-      </div>
-
-      {(airdrop.claimed || claimStatus === 'completed') && (
         <div className="bg-black/50 border-2 border-green-400 p-3 rounded-lg text-sm text-green-400 matrix-font">
-          <strong>✅ CLAIM SUCCESSFUL!</strong><br />
-          {'>'} {airdrop.claimAmount?.toLocaleString() || CLAIM_AMOUNT} CAT COIN has been sent<br />
-          {'>'} Check your wallet for CAT COIN tokens 🐱<br />
-          {'>'} Thank you for joining the CAT COIN Matrix!
+          <strong>{'>'} AIRDROP INFO:</strong><br />
+          {'>'} 1. Click "CLAIM AIRDROP" to start<br />
+          {'>'} 2. Smart contract will verify eligibility<br />
+          {'>'} 3. {CLAIM_AMOUNT} CAT COIN will be sent to your wallet<br />
+          {'>'} 4. Free with no additional fees! 🐱
         </div>
-      )}
+
+        {(airdrop.claimed || claimStatus === 'completed') && (
+          <div className="bg-black/50 border-2 border-green-400 p-3 rounded-lg text-sm text-green-400 matrix-font">
+            <strong>✅ CLAIM SUCCESSFUL!</strong><br />
+            {'>'} {airdrop.claimAmount?.toLocaleString() || CLAIM_AMOUNT} CAT COIN has been sent<br />
+            {'>'} Check your wallet for CAT COIN tokens 🐱<br />
+            {'>'} Thank you for joining the CAT COIN Matrix!
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 };
