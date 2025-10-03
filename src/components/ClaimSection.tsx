@@ -3,25 +3,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 
 interface ClaimSectionProps {
   wallet: string;
   provider: any;
+  airdrop: any;
 }
 
-const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
-  const [isClaiming, setIsClaiming] = useState(false);
+const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider, airdrop }) => {
+
+
   const [claimStatus, setClaimStatus] = useState<string | null>(null);
   const [claimData, setClaimData] = useState<any>(null);
 
-  const CLAIM_AMOUNT = '50,000';
-  const CLAIM_FEE = 0.01;
-  const FEE_RECIPIENT = 'Ec8pFBaToYb1THRQg9V9juFmYiX93upnT2WA63t7qkt1';
-  const TREASURY = 'vnxiyVZ7dAaRN12gA8EjkQ1NDZ1mD4yQv5SgPv5A9gh';
-  
-  // Solana connection (mainnet-beta for production, devnet for testing)
-  const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+  const CLAIM_AMOUNT = '100,000';
 
   // Check if wallet has already claimed
   useEffect(() => {
@@ -44,229 +39,112 @@ const ClaimSection: React.FC<ClaimSectionProps> = ({ wallet, provider }) => {
       // No existing claim found
     }
   };
-
-  const createFeeTransaction = async (): Promise<{ transaction: Transaction; signature: string }> => {
+  const handleClaimAirdrop = async () => {
     try {
-      const fromPubkey = new PublicKey(wallet);
-      const toPubkey = new PublicKey(FEE_RECIPIENT);
-      const lamports = CLAIM_FEE * LAMPORTS_PER_SOL;
-
-      // Get recent blockhash
-      const { blockhash } = await connection.getLatestBlockhash();
-
-      // Create transaction
-      const transaction = new Transaction({
-        recentBlockhash: blockhash,
-        feePayer: fromPubkey,
-      });
-
-      // Add transfer instruction
-      transaction.add(
-        SystemProgram.transfer({
-          fromPubkey,
-          toPubkey,
-          lamports,
-        })
-      );
-
-      // Sign and send transaction via wallet
-      const signedTransaction = await provider.signTransaction(transaction);
-      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+      await airdrop.claimAirdrop();
       
-      // Wait for confirmation
-      await connection.confirmTransaction(signature, 'confirmed');
-      
-      return { transaction: signedTransaction, signature };
-    } catch (error: any) {
-      throw new Error(`Failed to create fee transaction: ${error.message}`);
-    }
-  };
-
-  const claimAirdrop = async () => {
-    setIsClaiming(true);
-    try {
-      if (!provider || !provider.isConnected) {
-        throw new Error('Wallet not connected');
-      }
-
-      toast.info('Please approve the fee payment in your wallet...');
-
-      // Create and send fee transaction
-      const { signature: feeSignature } = await createFeeTransaction();
-      
-      toast.success('Fee payment confirmed!');
-      toast.info('Processing airdrop claim...');
-
-      // Call backend service to process the claim
-      const response = await fetch('/api/process-airdrop', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          walletAddress: wallet,
-          feeTransactionHash: feeSignature,
-          feePaid: CLAIM_FEE
-        })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to process claim');
-      }
-
-      setClaimData(result.claim);
-      setClaimStatus(result.claim.status);
-      toast.success('Claim submitted! CHIMPZY tokens will be sent shortly.');
-
-      // Poll for status updates
-      pollClaimStatus(result.claim.id);
-
-    } catch (error: any) {
-      setClaimStatus('failed');
-      if (error.message.includes('User rejected')) {
-        toast.error('Transaction was rejected. Please try again.');
-      } else {
-        toast.error(`Claim failed: ${error.message}`);
-      }
-    } finally {
-      setIsClaiming(false);
-    }
-  };
-
-  const pollClaimStatus = async (claimId: string) => {
-    const maxAttempts = 20;
-    let attempts = 0;
-
-    const poll = async () => {
-      try {
-        const { data, error } = await supabase
+      if (airdrop.claimed) {
+        // Update database record
+        const { error } = await supabase
           .from('airdrop_claims')
-          .select('*')
-          .eq('id', claimId)
-          .single();
+          .upsert({
+            wallet_address: wallet,
+            status: 'completed',
+            claim_amount: airdrop.claimAmount,
+            completed_at: new Date().toISOString(),
+            fee_paid: 0, // No fee for direct claim
+            fee_transaction_hash: 'direct_claim' // Placeholder for direct claims
+          });
 
-        if (data) {
-          setClaimData(data);
-          setClaimStatus(data.status);
-
-          if (data.status === 'completed') {
-            toast.success('🎉 CHIMPZY tokens have been sent to your wallet!');
-            return;
-          } else if (data.status === 'failed') {
-            toast.error('Token transfer failed. Please contact support.');
-            return;
-          }
+        if (error) {
+          console.error('Error updating claim record:', error);
         }
 
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(poll, 3000); // Poll every 3 seconds
-        }
-      } catch (error) {
-        console.error('Error polling claim status:', error);
+        setClaimStatus('completed');
+        toast.success(`Successfully claimed ${airdrop.claimAmount.toLocaleString()} CAT COIN!`);
       }
-    };
-
-    poll();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to claim airdrop');
+    }
   };
 
   const getStatusDisplay = () => {
-    switch (claimStatus) {
-      case 'pending':
-        return { text: '⏳ Claim Pending', color: 'bg-yellow-900/50 text-yellow-400 border-yellow-600' };
-      case 'processing':
-        return { text: '⚡ Processing Tokens...', color: 'bg-blue-900/50 text-blue-400 border-blue-600' };
-      case 'completed':
-        return { text: '🎉 Claim Completed!', color: 'bg-green-900/50 text-green-400 border-green-600' };
-      case 'failed':
-        return { text: '❌ Claim Failed', color: 'bg-red-900/50 text-red-400 border-red-600' };
-      default:
-        return null;
+    if (airdrop.error) {
+      return {
+        text: `❌ ERROR: ${airdrop.error}`,
+        color: 'text-red-400'
+      };
     }
+
+    if (airdrop.claimed || claimStatus === 'completed') {
+      return {
+        text: `✅ AIRDROP SUCCESSFULLY CLAIMED: ${airdrop.claimAmount?.toLocaleString() || CLAIM_AMOUNT} CAT COIN`,
+        color: 'text-green-400'
+      };
+    }
+
+    if (airdrop.claiming) {
+      return {
+        text: '⚡ SEDANG MEMPROSES CLAIM...',
+        color: 'text-yellow-400'
+      };
+    }
+
+    return null;
   };
 
   const statusDisplay = getStatusDisplay();
 
   return (
-    <Card className="bg-gray-800/50 border-gray-600">
+    <Card className="bg-black/80 border-green-400 border-2 matrix-font">
       <CardHeader>
-        <CardTitle className="text-white text-lg">Claim Your Airdrop</CardTitle>
+        <CardTitle className="text-green-400 text-lg matrix-font">
+          {'>'} CLAIM YOUR CAT COIN AIRDROP
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-center space-y-2">
-          <div className="text-3xl font-bold text-cyan-400">
-            {CLAIM_AMOUNT} CHIMPZY
+          <div className="text-3xl font-bold text-green-400 glitch-text">
+            {CLAIM_AMOUNT} CAT COIN 🐱
           </div>
-          <div className="text-sm text-gray-400">
-            <strong>Claim Fee:</strong> {CLAIM_FEE} SOL<br />
-            <small>Fee recipient: {FEE_RECIPIENT}</small><br />
-            <small><strong>Treasury:</strong> {TREASURY}</small>
+          <div className="text-sm text-green-300 matrix-font">
+            {'>'} Free for eligible users
           </div>
         </div>
 
         {statusDisplay && (
-          <div className={`p-3 rounded-lg text-sm border ${statusDisplay.color}`}>
+          <div className={`p-3 rounded-lg text-sm border-2 border-green-400 bg-black/50 ${statusDisplay.color}`}>
             {statusDisplay.text}
-            {claimData?.token_transaction_hash && (
-              <div className="mt-2">
-                <div className="text-xs text-gray-400">Token Transaction Hash:</div>
-                <div className="font-mono text-xs bg-gray-700 p-2 rounded break-all">
-                  {claimData.token_transaction_hash}
-                </div>
-              </div>
-            )}
-            {claimData?.fee_transaction_hash && (
-              <div className="mt-2">
-                <div className="text-xs text-gray-400">Fee Transaction Hash:</div>
-                <div className="font-mono text-xs bg-gray-700 p-2 rounded break-all">
-                  {claimData.fee_transaction_hash}
-                </div>
-              </div>
-            )}
-            {claimData?.error_message && (
-              <div className="mt-2 text-xs text-red-300">
-                Error: {claimData.error_message}
-              </div>
-            )}
           </div>
         )}
 
-        <Button 
-          onClick={claimAirdrop}
-          disabled={isClaiming || claimStatus === 'completed' || claimStatus === 'processing'}
-          className="w-full bg-gradient-to-r from-green-500 to-cyan-600 hover:from-green-600 hover:to-cyan-700"
-        >
-          {isClaiming ? 'Processing Transaction...' : 
-           claimStatus === 'completed' ? '✅ Tokens Sent' :
-           claimStatus === 'processing' ? '⚡ Processing...' :
-           'Claim Airdrop (Pay Fee)'}
-        </Button>
-
-        <div className="bg-blue-900/50 border border-blue-600 p-3 rounded-lg text-sm text-blue-400">
-          <strong>How it works:</strong><br />
-          1. Click "Claim Airdrop" button<br />
-          2. Approve the {CLAIM_FEE} SOL fee payment in your wallet<br />
-          3. Treasury automatically sends 50,000 CHIMPZY tokens<br />
-          4. Check your wallet for the tokens!
+        <div className="flex items-center space-x-3">
+          <Button 
+            onClick={handleClaimAirdrop}
+            disabled={true}
+            className="flex-1 matrix-button opacity-50 cursor-not-allowed"
+          >
+            {'{\'>\'}  CLAIM AIRDROP'}
+          </Button>
+          <div className="text-xs text-green-400 matrix-font bg-black/50 border border-green-400 px-2 py-1 rounded">
+            COMING SOON
+          </div>
         </div>
 
-        {claimStatus === 'completed' && (
-          <div className="bg-green-900/50 border border-green-600 p-3 rounded-lg text-sm text-green-400">
-            <strong>✅ Success!</strong><br />
-            • Your 50,000 CHIMPZY tokens have been sent<br />
-            • Transaction completed at: {new Date(claimData?.completed_at).toLocaleString()}<br />
-            • Check your wallet for the CHIMPZY tokens
-          </div>
-        )}
+        <div className="bg-black/50 border-2 border-green-400 p-3 rounded-lg text-sm text-green-400 matrix-font">
+          <strong>{'>'} AIRDROP INFO:</strong><br />
+          {'>'} 1. Click "CLAIM AIRDROP" to start<br />
+          {'>'} 2. Smart contract will verify eligibility<br />
+          {'>'} 3. {CLAIM_AMOUNT} CAT COIN will be sent to your wallet<br />
+          {'>'} 4. Free with no additional fees! 🐱
+        </div>
 
-        {claimStatus === 'processing' && (
-          <div className="bg-blue-900/50 border border-blue-600 p-3 rounded-lg text-sm text-blue-400">
-            <strong>⚡ Processing...</strong><br />
-            • Fee payment confirmed on blockchain<br />
-            • Treasury is sending your CHIMPZY tokens<br />
-            • This usually takes 30-60 seconds
+        {(airdrop.claimed || claimStatus === 'completed') && (
+          <div className="bg-black/50 border-2 border-green-400 p-3 rounded-lg text-sm text-green-400 matrix-font">
+            <strong>✅ CLAIM SUCCESSFUL!</strong><br />
+            {'>'} {airdrop.claimAmount?.toLocaleString() || CLAIM_AMOUNT} CAT COIN has been sent<br />
+            {'>'} Check your wallet for CAT COIN tokens 🐱<br />
+            {'>'} Thank you for joining the CAT COIN Matrix!
           </div>
         )}
       </CardContent>

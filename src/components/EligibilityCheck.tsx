@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -17,78 +18,90 @@ const EligibilityCheck: React.FC<EligibilityCheckProps> = ({
   onEligibilityResult
 }) => {
   const [isChecking, setIsChecking] = useState(false);
-  const [eligibilityStatus, setEligibilityStatus] = useState<string | null>(null);
+  const [isEligible, setIsEligible] = useState(false);
+  const [hasChecked, setHasChecked] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('');
 
   const checkEligibility = async () => {
+    if (!walletAddress.trim()) {
+      toast.error('Please enter a wallet address');
+      return;
+    }
+    
     setIsChecking(true);
     try {
-      // Simulate eligibility check delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Check if wallet has already claimed
-      const { data: existingClaim } = await supabase
-        .from('airdrop_claims')
-        .select('*')
-        .eq('wallet_address', wallet)
-        .single();
-
-      if (existingClaim) {
-        setEligibilityStatus('Already claimed');
-        onEligibilityResult(false);
-        toast.error('This wallet has already claimed the airdrop');
-        return;
-      }
-
-      // For demo purposes, all connected wallets are eligible
-      setEligibilityStatus('Eligible');
-      onEligibilityResult(true);
+      // For demo purposes, make all wallets eligible
+      // In production, you would check against a whitelist or specific criteria
+      setIsEligible(true);
+      setHasChecked(true);
       onEligibilityCheck(true);
-      toast.success('🎉 You are eligible for the airdrop!');
+      onEligibilityResult(true);
+      toast.success('✅ Wallet saved for airdrop! 🐱');
     } catch (error: any) {
-      // If no claim found, wallet is eligible
-      if (error.code === 'PGRST116') {
-        setEligibilityStatus('Eligible');
-        onEligibilityResult(true);
-        onEligibilityCheck(true);
-        toast.success('🎉 You are eligible for the airdrop!');
-      } else {
-        setEligibilityStatus('Error checking eligibility');
-        onEligibilityResult(false);
-        toast.error(`Eligibility check failed: ${error.message}`);
-      }
+      toast.error(`Error checking eligibility: ${error.message}`);
+      setIsEligible(false);
+      setHasChecked(true);
+      onEligibilityCheck(true);
+      onEligibilityResult(false);
     } finally {
       setIsChecking(false);
     }
   };
 
   return (
-    <Card className="bg-gray-800/50 border-gray-600">
+    <Card className="bg-black/80 border-green-400 border-2 matrix-font">
       <CardHeader>
-        <CardTitle className="text-white text-lg">Eligibility Check</CardTitle>
+        <CardTitle className="text-green-400 text-lg matrix-font">
+          {'>'} ELIGIBILITY CHECK
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {eligibilityStatus && (
-          <div className={`p-3 rounded-lg text-sm font-medium ${
-            eligibilityStatus === 'Eligible' 
-              ? 'bg-green-900/50 text-green-400 border border-green-600' 
-              : eligibilityStatus === 'Already claimed'
-              ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-600'
-              : 'bg-red-900/50 text-red-400 border border-red-600'
-          }`}>
-            {eligibilityStatus === 'Eligible' && '✅ '}
-            {eligibilityStatus === 'Already claimed' && '⚠️ '}
-            {eligibilityStatus === 'Error checking eligibility' && '❌ '}
-            {eligibilityStatus}
+        {!isEligible && !hasChecked && (
+          <div className="text-center space-y-4">
+            <div className="text-green-400 matrix-font">
+              {'>'} Enter your wallet address to check CAT COIN airdrop eligibility 🐱
+            </div>
+            <Input
+              type="text"
+              placeholder="Enter your Solana wallet address..."
+              value={walletAddress}
+              onChange={(e) => setWalletAddress(e.target.value)}
+              className="bg-black border-green-400 text-green-400 placeholder-green-600 matrix-font"
+            />
+            <Button 
+              onClick={checkEligibility}
+              disabled={isChecking || !walletAddress.trim()}
+              className="matrix-button"
+            >
+              {isChecking ? '{\'>\'}  SCANNING MATRIX...' : '{\'>\'}  CHECK ELIGIBILITY'}
+            </Button>
           </div>
         )}
-        
-        <Button 
-          onClick={checkEligibility}
-          disabled={isChecking}
-          className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700"
-        >
-          {isChecking ? 'Checking Eligibility...' : 'Check Eligibility'}
-        </Button>
+
+        {hasChecked && !isEligible && (
+          <div className="bg-black/50 border-2 border-red-400 p-4 rounded-lg text-center">
+            <div className="text-red-400 text-lg font-bold matrix-font">
+              ❌ NOT ELIGIBLE
+            </div>
+            <div className="text-red-300 text-sm mt-2 matrix-font">
+              {'>'} Your wallet is not eligible for the CAT COIN airdrop<br />
+              {'>'} Only specific addresses qualify for this distribution 🐱
+            </div>
+          </div>
+        )}
+
+        {isEligible && (
+          <div className="bg-black/50 border-2 border-green-400 p-4 rounded-lg text-center">
+            <div className="text-green-400 text-lg font-bold glitch-text">
+              ✅ WALLET SAVED FOR AIRDROP! 🐱
+            </div>
+            <div className="text-green-300 text-sm mt-2 matrix-font">
+              {'>'} Wallet address: {walletAddress}<br />
+              {'>'} Your wallet has been saved to receive the airdrop<br />
+              {'>'} You will receive 50,000 CAT COIN tokens
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

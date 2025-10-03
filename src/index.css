@@ -4,29 +4,30 @@
 @import "tailwindcss/utilities";
 
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 0 0% 0%;
+    --foreground: 120 100% 50%;
     --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card-foreground: 120 100% 50%;
     --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
+    --popover-foreground: 120 100% 50%;
+    --primary: 120 100% 50%;
+    --primary-foreground: 0 0% 0%;
     --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary-foreground: 120 100% 50%;
     --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+    --muted-foreground: 120 60% 40%;
+    --accent: 120 100% 25%;
+    --accent-foreground: 120 100% 50%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
+    --destructive-foreground: 120 100% 50%;
+    --border: 120 100% 25%;
     --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
+    --ring: 120 100% 50%;
+    --chart-1: 120 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
@@ -39,7 +40,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-black text-green-400;
+    font-family: 'Courier Prime', monospace;
   }
 }
 
@@ -48,9 +50,225 @@
     font-family: 'Orbitron', monospace;
     text-shadow: 0 0 10px currentColor;
   }
+  
+  .matrix-font {
+    font-family: 'Courier Prime', monospace;
+    font-weight: 400;
+  }
 }
 
+/* Matrix Theme Styles */
 body {
   background: #000000;
   min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Glitch Text Effect */
+.glitch-text {
+  position: relative;
+  color: #00ff00;
+  font-family: 'Courier Prime', monospace;
+  animation: glitch 2s infinite;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitch-text::before {
+  animation: glitch-1 0.5s infinite;
+  color: #ff0000;
+  z-index: -1;
+}
+
+.glitch-text::after {
+  animation: glitch-2 0.5s infinite;
+  color: #0000ff;
+  z-index: -2;
+}
+
+@keyframes glitch {
+  0%, 100% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+}
+
+@keyframes glitch-1 {
+  0%, 100% { transform: translate(0); }
+  10% { transform: translate(-2px, -2px); }
+  20% { transform: translate(2px, 2px); }
+  30% { transform: translate(-2px, 2px); }
+  40% { transform: translate(2px, -2px); }
+}
+
+@keyframes glitch-2 {
+  0%, 100% { transform: translate(0); }
+  10% { transform: translate(2px, 2px); }
+  20% { transform: translate(-2px, -2px); }
+  30% { transform: translate(2px, -2px); }
+  40% { transform: translate(-2px, 2px); }
+}
+
+/* Matrix Rain Effect */
+.matrix-rain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.matrix-column {
+  position: absolute;
+  top: -100%;
+  animation: matrix-fall 10s linear infinite;
+  font-family: 'Courier Prime', monospace;
+  color: #00ff00;
+  opacity: 0.7;
+}
+
+.matrix-char {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12px;
+  text-shadow: 0 0 5px #00ff00;
+}
+
+@keyframes matrix-fall {
+  0% { transform: translateY(-100vh); }
+  100% { transform: translateY(100vh); }
+}
+
+/* Typewriter Effect */
+.typewriter {
+  overflow: hidden;
+  border-right: 2px solid #00ff00;
+  white-space: nowrap;
+  margin: 0 auto;
+  animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: #00ff00; }
+}
+
+/* Matrix Button Styles */
+.matrix-button {
+  background: transparent;
+  border: 2px solid #00ff00;
+  color: #00ff00;
+  font-family: 'Courier Prime', monospace;
+  padding: 12px 24px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.matrix-button:hover {
+  background: #00ff00;
+  color: #000000;
+  box-shadow: 0 0 20px #00ff00;
+  text-shadow: none;
+}
+
+.matrix-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.matrix-button:hover::before {
+  left: 100%;
+}
+
+/* Cat ASCII Art Animation */
+.cat-ascii {
+  animation: cat-blink 3s infinite;
+}
+
+@keyframes cat-blink {
+  0%, 90%, 100% { opacity: 1; }
+  95% { opacity: 0.3; }
+}
+
+/* Cat Symbol Styles */
+.cat-symbol-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.cat-symbol {
+  filter: drop-shadow(0 0 10px #00ff00);
+  animation: cat-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes cat-glow {
+  0% { 
+    filter: drop-shadow(0 0 10px #00ff00);
+    transform: scale(1);
+  }
+  100% { 
+    filter: drop-shadow(0 0 20px #00ff00) drop-shadow(0 0 30px #00ff00);
+    transform: scale(1.05);
+  }
+}
+
+/* Improved centering for text */
+.text-center {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive text sizing */
+@media (max-width: 768px) {
+  .cat-symbol {
+    width: 150px;
+    height: 150px;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00ff00;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00cc00;
 }

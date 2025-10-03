@@ -1,0 +1,150 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { toast } from '@/components/ui/sonner';
+import PaymentPopup from './PaymentPopup';
+
+interface PresaleSectionProps {
+  wallet: string;
+  provider: any;
+  presale: any;
+}
+
+const PresaleSection: React.FC<PresaleSectionProps> = ({ wallet, provider, presale }) => {
+  const [solAmount, setSolAmount] = useState<string>('');
+  const [showCalculation, setShowCalculation] = useState(false);
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false);
+
+  const handleSolAmountChange = (value: string) => {
+    // Only allow numbers and decimal point
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setSolAmount(value);
+      setShowCalculation(value !== '' && parseFloat(value) > 0);
+    }
+  };
+
+  const handleBuyTokens = async () => {
+    if (!solAmount || parseFloat(solAmount) <= 0) {
+      toast.error('Enter a valid SOL amount');
+      return;
+    }
+
+    const amount = parseFloat(solAmount);
+    if (amount < 0.01) {
+      toast.error('Minimum purchase is 0.01 SOL');
+      return;
+    }
+
+    if (amount > 10) {
+      toast.error('Maximum purchase is 10 SOL per transaction');
+      return;
+    }
+
+    // Show payment popup instead of processing directly
+    setShowPaymentPopup(true);
+  };
+
+  const calculateTokens = (sol: number): number => {
+    return sol * presale.PRESALE_RATE;
+  };
+
+  return (
+    <Card className="bg-black/80 border-green-400 border-2 matrix-font">
+      <CardHeader>
+        <CardTitle className="text-green-400 text-lg matrix-font">
+          {'>'} PRESALE PROTOCOL ACTIVE
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="text-green-300 text-sm">{'>'} PRESALE RATE:</div>
+          <div className="bg-black border border-green-400 p-3 rounded">
+            <div className="text-green-400 font-mono text-center text-lg">
+              1 SOL = {presale.PRESALE_RATE.toLocaleString()} CAT COIN
+            </div>
+          </div>
+        </div>
+
+        {presale.error && (
+          <div className="bg-red-900/50 border border-red-500 p-3 rounded">
+            <div className="text-red-400 text-sm">❌ {presale.error}</div>
+          </div>
+        )}
+
+        {presale.purchased && (
+          <div className="bg-green-900/50 border border-green-500 p-3 rounded">
+            <div className="text-green-400 text-sm">
+              ✅ Purchase successful: {presale.purchaseAmount} SOL = {presale.tokenAmount.toLocaleString()} CAT COIN
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-green-300 text-sm block mb-2">
+              {'>'} SOL amount for purchase:
+            </label>
+            <Input
+              type="text"
+              value={solAmount}
+              onChange={(e) => handleSolAmountChange(e.target.value)}
+              placeholder="0.1"
+              className="bg-black border-green-400 text-green-400 placeholder-green-600"
+              disabled={presale.purchasing}
+            />
+            <div className="text-xs text-green-600 mt-1">
+              Min: 0.01 SOL | Max: 10 SOL per transaction
+            </div>
+          </div>
+
+          {showCalculation && (
+            <div className="bg-black border border-green-400 p-3 rounded">
+              <div className="text-green-300 text-sm mb-1">{'>'} Calculation:</div>
+              <div className="text-green-400 font-mono">
+                {parseFloat(solAmount)} SOL = {calculateTokens(parseFloat(solAmount)).toLocaleString()} CAT COIN
+              </div>
+            </div>
+          )}
+
+          <Button
+            onClick={handleBuyTokens}
+            disabled={presale.purchasing || !solAmount || parseFloat(solAmount) <= 0}
+            className="w-full matrix-button"
+          >
+            {presale.purchasing ? '{\'>\'}  PROCESSING PURCHASE...' : '{\'>\'}  BUY CAT COIN'}
+          </Button>
+        </div>
+
+        <div className="border-t border-green-400 pt-4">
+          <div className="text-green-300 text-sm mb-2">{'>'} PRESALE INFO:</div>
+          <div className="space-y-1 text-xs text-green-400">
+            <div>• Rate: 1 SOL = 2,500,000 CAT COIN</div>
+            <div>• Minimum: 0.01 SOL</div>
+            <div>• Maximum: 10 SOL per transaction</div>
+            <div>• Tokens will be sent directly to your wallet</div>
+            <div>• Presale uses Solana blockchain</div>
+          </div>
+        </div>
+
+        {presale.totalPurchased > 0 && (
+          <div className="bg-green-900/30 border border-green-500 p-3 rounded">
+            <div className="text-green-300 text-sm">
+              {'>'} Your total purchases: {presale.totalPurchased} SOL
+            </div>
+          </div>
+        )}
+      </CardContent>
+
+      {/* Payment Popup */}
+      <PaymentPopup
+        isOpen={showPaymentPopup}
+        onClose={() => setShowPaymentPopup(false)}
+        solAmount={parseFloat(solAmount) || 0}
+        tokenAmount={calculateTokens(parseFloat(solAmount) || 0)}
+      />
+    </Card>
+  );
+};
+
+export default PresaleSection;
