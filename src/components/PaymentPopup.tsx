@@ -36,7 +36,7 @@ const PaymentPopup: React.FC<PaymentPopupProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md bg-black border-2 border-green-400 text-green-400 matrix-font relative">
+      <Card className="w-full max-w-md bg-black border-2 border-white text-white matrix-font relative">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-xl font-bold glitch-text">
@@ -46,7 +46,7 @@ const PaymentPopup: React.FC<PaymentPopupProps> = ({
               onClick={onClose}
               variant="ghost"
               size="sm"
-              className="text-green-400 hover:text-green-300 hover:bg-green-400/10"
+              className="text-white hover:text-white/80 hover:bg-white/10"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -55,22 +55,22 @@ const PaymentPopup: React.FC<PaymentPopupProps> = ({
         
         <CardContent className="space-y-4">
           {/* Payment Summary */}
-          <div className="bg-black/50 border border-green-400 p-3 rounded-lg">
+          <div className="bg-black/50 border border-white p-3 rounded-lg">
             <div className="text-center space-y-2">
               <div className="text-lg font-bold">
                 {'>'} PAYMENT SUMMARY
               </div>
               <div className="text-sm space-y-1">
-                <div>SOL Amount: <span className="text-green-300 font-bold">{solAmount} SOL</span></div>
-                <div>You will receive: <span className="text-green-300 font-bold">{tokenAmount.toLocaleString()} CAT COIN</span></div>
+                <div>SOL Amount: <span className="text-white font-bold">{solAmount} SOL</span></div>
+                <div>You will receive: <span className="text-white font-bold">{tokenAmount.toLocaleString()} CAT COIN</span></div>
               </div>
             </div>
           </div>
 
           {/* Payment Instructions */}
-          <div className="bg-black/50 border border-green-400 p-3 rounded-lg text-sm">
+          <div className="bg-black/50 border border-white p-3 rounded-lg text-sm">
             <div className="font-bold mb-2">{'>'} PAYMENT INSTRUCTIONS:</div>
-            <div className="space-y-1 text-green-300">
+            <div className="space-y-1 text-white">
               <div>1. Copy the payment address below</div>
               <div>2. Send exactly {solAmount} SOL to this address</div>
               <div>3. Your CAT COIN tokens will be sent automatically</div>
@@ -79,10 +79,10 @@ const PaymentPopup: React.FC<PaymentPopupProps> = ({
           </div>
 
           {/* Payment Address */}
-          <div className="bg-black/50 border border-green-400 p-3 rounded-lg">
+          <div className="bg-black/50 border border-white p-3 rounded-lg">
             <div className="font-bold mb-2">{'>'} PAYMENT ADDRESS:</div>
             <div className="flex items-center space-x-2">
-              <div className="flex-1 bg-black border border-green-400 p-2 rounded text-xs font-mono break-all">
+              <div className="flex-1 bg-black border border-white p-2 rounded text-xs font-mono break-all">
                 {PAYMENT_ADDRESS}
               </div>
               <Button
@@ -115,7 +115,7 @@ const PaymentPopup: React.FC<PaymentPopupProps> = ({
             <Button
               onClick={onClose}
               variant="outline"
-              className="flex-1 border-green-400 text-green-400 hover:bg-green-400/10"
+              className="flex-1 border-white text-white hover:bg-white/10"
             >
               {'>'} CANCEL
             </Button>

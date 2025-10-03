@@ -26,19 +26,15 @@ const Index = () => {
     {'>'} ^ {'<'}  `}
           </pre>
         </div>
-        <h1 className="text-6xl font-bold mb-4 glitch-text animate-pulse">
-          ░█▀▀░█▀█░▀█▀░░░█▀▀░█▀█░▀█▀░█▀█
-          ░█░░░█▀█░░█░░░░█░░░█░█░░█░░█░█
-          ░▀▀▀░▀░▀░░▀░░░░▀▀▀░▀▀▀░▀▀▀░▀░▀
-        </h1>
-        <p className="text-xl text-green-300 mb-8 typewriter">
-          {'>'} INITIALIZING MATRIX PROTOCOL...
-          <br />
-          {'>'} CAT COIN AIRDROP SYSTEM ONLINE
-          <br />
-          {'>'} READY FOR DEPLOYMENT 🐱
-        </p>
-        <div className="border border-green-400 p-4 bg-black bg-opacity-50">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-6xl font-bold glitch-text animate-pulse text-white matrix-font mb-4">
+            CAT COIN AIRDROP
+          </h1>
+          <p className="text-lg md:text-xl text-white typewriter">
+            {'>'} cats are better then dogs
+          </p>
+        </div>
+        <div className="border border-white p-4 bg-black bg-opacity-50">
           <p className="text-sm">ENTER THE MATRIX • CLAIM YOUR COINS • JOIN THE REVOLUTION</p>
         </div>
       </div>

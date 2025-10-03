@@ -40,14 +40,15 @@ const AirdropContainer = () => {
     <div className="w-full max-w-2xl mx-auto space-y-6">
       <div className="text-center space-y-6">
         <div className="flex flex-col items-center justify-center space-y-4">
-          <h1 className="text-4xl md:text-6xl font-bold glitch-text animate-pulse text-green-400 matrix-font text-center leading-tight">
-            <div className="flex flex-col items-center space-y-2">
-              <div>░█▀▀░█▀█░▀█▀░░░█▀▀░█▀█░▀█▀░█▀█</div>
-              <div>░█░░░█▀█░░█░░░░█░░░█░█░░█░░█░█</div>
-              <div>░▀▀▀░▀░▀░░▀░░░░▀▀▀░▀▀▀░▀▀▀░▀░▀</div>
-            </div>
+          <h1 className="text-4xl md:text-6xl font-bold glitch-text animate-pulse text-white matrix-font text-center leading-tight">
+            CAT COIN AIRDROP
           </h1>
-          <p className="text-lg md:text-xl text-green-300 typewriter text-center">
+          <div className="text-center mt-4">
+            <div className="inline-block border-2 border-white p-2 rounded-lg bg-black/50">
+              <span className="text-lg font-bold text-white">🐱 20,000 $CAT TOKENS 🐱</span>
+            </div>
+          </div>
+          <p className="text-lg md:text-xl text-white typewriter text-center">
             {'>'} cats are better then dogs
           </p>
         </div>

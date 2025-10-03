@@ -40,7 +40,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-black text-green-400;
+    @apply bg-black text-white;
     font-family: 'Courier Prime', monospace;
   }
 }

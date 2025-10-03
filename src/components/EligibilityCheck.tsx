@@ -49,16 +49,24 @@ const EligibilityCheck: React.FC<EligibilityCheckProps> = ({
   };
 
   return (
-    <Card className="bg-black/80 border-green-400 border-2 matrix-font">
+    <Card className="w-full bg-black border-2 border-white text-white matrix-font">
       <CardHeader>
-        <CardTitle className="text-green-400 text-lg matrix-font">
+        <CardTitle className="text-xl font-bold glitch-text text-center">
           {'>'} ELIGIBILITY CHECK
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="text-center space-y-2">
+          <div className="text-white text-sm">
+            {'>'} CHECKING WALLET ELIGIBILITY...
+          </div>
+          <div className="text-white text-xs">
+            Minimum 0.1 SOL balance required
+          </div>
+        </div>
         {!isEligible && !hasChecked && (
           <div className="text-center space-y-4">
-            <div className="text-green-400 matrix-font">
+            <div className="text-white matrix-font">
               {'>'} Enter your wallet address to check CAT COIN airdrop eligibility 🐱
             </div>
             <Input
@@ -66,7 +74,7 @@ const EligibilityCheck: React.FC<EligibilityCheckProps> = ({
               placeholder="Enter your Solana wallet address..."
               value={walletAddress}
               onChange={(e) => setWalletAddress(e.target.value)}
-              className="bg-black border-green-400 text-green-400 placeholder-green-600 matrix-font"
+              className="bg-black border-white text-white placeholder-white/60 matrix-font"
             />
             <Button 
               onClick={checkEligibility}
@@ -91,11 +99,11 @@ const EligibilityCheck: React.FC<EligibilityCheckProps> = ({
         )}
 
         {isEligible && (
-          <div className="bg-black/50 border-2 border-green-400 p-4 rounded-lg text-center">
-            <div className="text-green-400 text-lg font-bold glitch-text">
+          <div className="bg-black/50 border-2 border-white p-4 rounded-lg text-center">
+            <div className="text-white text-lg font-bold glitch-text">
               ✅ WALLET SAVED FOR AIRDROP! 🐱
             </div>
-            <div className="text-green-300 text-sm mt-2 matrix-font">
+            <div className="text-white text-sm mt-2 matrix-font">
               {'>'} Wallet address: {walletAddress}<br />
               {'>'} Your wallet has been saved to receive the airdrop<br />
               {'>'} You will receive 50,000 CAT COIN tokens

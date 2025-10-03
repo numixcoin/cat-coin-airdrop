@@ -101,27 +101,27 @@ const SocialTasks: React.FC<SocialTasksProps> = ({ wallet, onTasksComplete }) =>
   };
 
   return (
-    <Card className="bg-black/80 border-green-400 border-2 matrix-font">
+    <Card className="bg-black/80 border-white border-2 matrix-font">
       <CardHeader>
-        <CardTitle className="text-green-400 text-lg matrix-font flex items-center gap-2">
-          <span className="text-2xl">🐱</span>
-          {'>'} SOCIAL MEDIA TASKS
+        <CardTitle className="text-white text-lg matrix-font flex items-center gap-2">
+          <Twitter className="w-5 h-5" />
+          {'>'} SOCIAL TASKS
         </CardTitle>
-        <div className="text-green-300 text-sm">
-          {'>'} Complete all tasks to unlock your 50,000 $CAT airdrop
+        <div className="text-white text-sm">
+          Complete tasks to earn bonus CAT COIN
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="bg-black/50 border-2 border-green-400 p-3 rounded-lg">
-          <div className="text-green-400 font-bold text-lg">
-            {'>'} PROGRESS: {tasks.filter(t => t.completed).length}/{tasks.length} TASKS
+        <div className="bg-black/50 border-2 border-white p-3 rounded-lg">
+          <div className="text-white font-bold text-lg">
+            BONUS REWARDS AVAILABLE
           </div>
-          <div className="text-green-300 text-sm">
-            {'>'} EARNED: {getTotalReward().toLocaleString()} / 50,000 $CAT 🐱
+          <div className="text-white text-sm">
+            Complete all tasks for extra tokens
           </div>
-          <div className="w-full bg-black border border-green-400 rounded-full h-2 mt-2">
+          <div className="w-full bg-black border border-white rounded-full h-2 mt-2">
             <div 
-              className="bg-green-400 h-2 rounded-full transition-all duration-500"
+              className="bg-white h-2 rounded-full transition-all duration-500"
               style={{ width: `${(getTotalReward() / 50000) * 100}%` }}
             ></div>
           </div>
@@ -133,27 +133,27 @@ const SocialTasks: React.FC<SocialTasksProps> = ({ wallet, onTasksComplete }) =>
               key={task.id}
               className={`border-2 rounded-lg p-4 transition-all ${
                 task.completed 
-                  ? 'border-green-400 bg-green-900/20' 
-                  : 'border-green-400/50 bg-black/50 hover:border-green-400 hover:bg-green-900/10'
+                  ? 'border-white bg-white/20'
+                  : 'border-white/50 bg-black/50 hover:border-white hover:bg-white/10'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="text-green-400">
-                    {task.icon}
-                  </div>
-                  <div>
-                    <div className="text-green-400 font-bold flex items-center gap-2">
-                      {getTaskStatusIcon(task.completed)} {task.title}
-                    </div>
-                    <div className="text-green-300 text-sm">
-                      {task.description}
-                    </div>
-                    <div className="text-green-400 text-sm font-bold">
-                      {'>'} REWARD: +{task.reward.toLocaleString()} $CAT 🐱
-                    </div>
-                  </div>
-                </div>
+                   <div className="text-white">
+                     {task.icon}
+                   </div>
+                   <div>
+                     <div className="text-white font-bold flex items-center gap-2">
+                       {getTaskStatusIcon(task.completed)} {task.title}
+                     </div>
+                     <div className="text-white text-sm">
+                       {task.description}
+                     </div>
+                     <div className="text-white text-sm font-bold">
+                       {'>'} REWARD: +{task.reward.toLocaleString()} $CAT 🐱
+                     </div>
+                   </div>
+                 </div>
                 <Button
                   onClick={() => handleTaskClick(task.id, task.url)}
                   disabled={task.completed}
@@ -172,11 +172,11 @@ const SocialTasks: React.FC<SocialTasksProps> = ({ wallet, onTasksComplete }) =>
         </div>
 
         {allTasksCompleted && (
-          <div className="bg-black/50 border-2 border-green-400 p-4 rounded-lg text-center animate-pulse">
-            <div className="text-green-400 text-xl font-bold glitch-text">
-              🎉 ALL TASKS COMPLETED! 🎉
+          <div className="bg-black/50 border-2 border-white p-4 rounded-lg text-center animate-pulse">
+            <div className="text-white text-xl font-bold glitch-text">
+              BONUS SYSTEM ACTIVE
             </div>
-            <div className="text-green-300 text-sm mt-2">
+            <div className="text-white text-sm mt-2">
               {'>'} You've earned 50,000 $CAT tokens! 🐱<br />
               {'>'} Proceed to claim your airdrop below
             </div>
