@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/sonner';
 import PaymentPopup from './PaymentPopup';
+import CountdownTimer from './CountdownTimer';
 
 interface PresaleSectionProps {
   wallet: string;
@@ -135,6 +136,11 @@ const PresaleSection: React.FC<PresaleSectionProps> = ({ wallet, provider, presa
           </div>
         )}
       </CardContent>
+
+      {/* Countdown Timer */}
+      <div className="p-4 border-t border-white">
+        <CountdownTimer />
+      </div>
 
     {/* Payment Popup */}
     <PaymentPopup
