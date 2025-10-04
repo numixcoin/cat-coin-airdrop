@@ -17,9 +17,22 @@ const CountdownTimer: React.FC = () => {
   const [glitchEffect, setGlitchEffect] = useState(false);
 
   useEffect(() => {
-    // Set target date to 7 days from now
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + 7);
+    // Get or set a fixed target date that persists across refreshes
+    const getTargetDate = (): Date => {
+      const storedTargetDate = localStorage.getItem('presale-countdown-target');
+      
+      if (storedTargetDate) {
+        return new Date(storedTargetDate);
+      } else {
+        // Set target date to 7 days from now (only on first visit)
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + 7);
+        localStorage.setItem('presale-countdown-target', targetDate.toISOString());
+        return targetDate;
+      }
+    };
+
+    const targetDate = getTargetDate();
 
     const timer = setInterval(() => {
       const now = new Date().getTime();
@@ -39,9 +52,28 @@ const CountdownTimer: React.FC = () => {
           setTimeout(() => setGlitchEffect(false), 150);
         }
       } else {
+        // Countdown has ended
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        clearInterval(timer);
+        // Optionally remove the stored target date when countdown ends
+        localStorage.removeItem('presale-countdown-target');
       }
     }, 1000);
+
+    // Initial calculation to avoid delay
+    const now = new Date().getTime();
+    const distance = targetDate.getTime() - now;
+    
+    if (distance > 0) {
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      
+      setTimeLeft({ days, hours, minutes, seconds });
+    } else {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+    }
 
     return () => clearInterval(timer);
   }, []);

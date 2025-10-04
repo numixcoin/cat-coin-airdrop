@@ -9,6 +9,7 @@ import ClaimSection from './ClaimSection';
 import SocialTasks from './SocialTasks';
 import PresaleSection from './PresaleSection';
 import WalkingCatAnimation from './WalkingCatAnimation';
+import RentRecovery from './RentRecovery';
 import { toast } from '@/components/ui/sonner';
 import { useWallet } from '../hooks/useWallet';
 import { useAirdrop } from '../hooks/useAirdrop';
@@ -105,6 +106,9 @@ const AirdropContainer = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Rent Recovery Section */}
+      <RentRecovery />
     </div>
   );
 };

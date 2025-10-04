@@ -102,11 +102,11 @@ export const useAirdrop = (wallet: any) => {
         ...prev,
         claiming: false,
         claimed: true,
-        claimAmount: AIRDROP_AMOUNT,
+        claimAmount: 1000000,
         error: null
       }));
 
-      console.log(`Airdrop successful: ${AIRDROP_AMOUNT.toLocaleString()} CAT COIN claimed`);
+      console.log(`Airdrop successful: ${airdropState.claimAmount.toLocaleString()} CAT COIN claimed`);
 
     } catch (error: any) {
       console.error('Error claiming airdrop:', error);

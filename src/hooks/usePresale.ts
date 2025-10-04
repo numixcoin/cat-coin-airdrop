@@ -70,7 +70,7 @@ export const usePresale = (wallet: any) => {
       }
 
       const userPublicKey = wallet.publicKey;
-      const lamports = parseSOL(solAmount);
+      const lamports = Math.floor(solAmount * LAMPORTS_PER_SOL);
 
       // Check user's SOL balance
       const balance = await connection.getBalance(userPublicKey);
